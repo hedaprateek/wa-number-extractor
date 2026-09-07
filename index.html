@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WhatsApp Number Extractor</title>
-<meta name="description" content="Paste an exported WhatsApp chat and pull out every unique phone number it mentions, with occurrence counts — all in your browser, nothing uploaded.">
+<title>WhatsApp Contact Extractor</title>
+<meta name="description" content="Paste an exported WhatsApp chat and pull out every contact card as a name and number, plus any bare numbers typed in messages — all in your browser, nothing uploaded.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -78,7 +78,7 @@
   *:focus-visible{ outline:2.5px solid var(--focus); outline-offset:2px; border-radius:2px; }
 
   .wrap{
-    max-width:1040px;
+    max-width:1080px;
     margin:0 auto;
     padding:clamp(24px,5vw,52px) clamp(18px,4vw,32px) 48px;
   }
@@ -115,7 +115,7 @@
   .sub{
     margin:2px 0 0;
     color:var(--ink-dim);
-    max-width:64ch;
+    max-width:68ch;
     font-size:14.5px;
   }
   .privacy{
@@ -137,7 +137,7 @@
   }
   .panes{
     display:grid;
-    grid-template-columns:1fr 1fr;
+    grid-template-columns:1fr 1.15fr;
   }
   @media (max-width:760px){
     .panes{ grid-template-columns:1fr; }
@@ -169,7 +169,7 @@
 
   textarea{
     flex:1;
-    min-height:360px;
+    min-height:420px;
     width:100%;
     resize:vertical;
     border:0;
@@ -177,7 +177,7 @@
     background:transparent;
     color:var(--ink);
     font-family:"JetBrains Mono", ui-monospace, monospace;
-    font-size:12.5px;
+    font-size:12px;
     line-height:1.65;
   }
   textarea::placeholder{ color:var(--ink-faint); }
@@ -238,7 +238,7 @@
   .results{
     flex:1;
     overflow-y:auto;
-    max-height:436px;
+    max-height:496px;
   }
   .example-flag{
     margin:14px 18px 0;
@@ -256,6 +256,28 @@
     font-size:13.5px;
   }
 
+  .section-head{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 18px;
+    background:var(--surface-2);
+    border-bottom:1px solid var(--hairline);
+    border-top:1px solid var(--hairline);
+    font-family:"JetBrains Mono", ui-monospace, monospace;
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .section-head:first-child{ border-top:0; }
+  .section-count{
+    font-variant-numeric:tabular-nums;
+    color:var(--ink-faint);
+    font-weight:400;
+  }
+
   .row{
     display:flex;
     align-items:center;
@@ -264,20 +286,41 @@
     border-bottom:1px solid var(--hairline);
   }
   .row:last-child{ border-bottom:0; }
+  .row-main{ flex:1; min-width:0; }
+  .row-name{
+    font-size:14px;
+    font-weight:700;
+    color:var(--ink);
+  }
   .row-number{
     font-family:"JetBrains Mono", ui-monospace, monospace;
-    font-size:14px;
+    font-size:13px;
     font-weight:500;
-    color:var(--ink);
+    color:var(--ink-dim);
     font-variant-numeric:tabular-nums;
     letter-spacing:.01em;
+    margin-top:1px;
+  }
+  .row-name + .row-number{ color:var(--ink-dim); }
+  .row-main > .row-number:only-child{ font-size:14px; color:var(--ink); }
+  .row-number--muted{ font-style:italic; color:var(--ink-faint); font-family:"Archivo", sans-serif; }
+  .row-type{
+    font-family:"Archivo", sans-serif;
+    font-size:10.5px;
+    font-weight:600;
+    color:var(--accent);
+    background:var(--accent-soft);
+    border-radius:4px;
+    padding:1px 6px;
+    margin-left:4px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
   }
   .row-country{
     font-size:11px;
     color:var(--ink-faint);
     margin-top:1px;
   }
-  .row-main{ flex:1; min-width:0; }
   .row-count{
     font-family:"JetBrains Mono", ui-monospace, monospace;
     font-size:11px;
@@ -289,12 +332,22 @@
     flex:none;
     font-variant-numeric:tabular-nums;
   }
+  .omitted-note{
+    margin:0;
+    padding:12px 18px;
+    font-size:12px;
+    color:var(--ink-faint);
+    border-top:1px solid var(--hairline);
+  }
 
   footer{
     margin-top:18px;
     font-size:12px;
     color:var(--ink-faint);
     text-align:center;
+    max-width:72ch;
+    margin-left:auto;
+    margin-right:auto;
   }
 </style>
 </head>
@@ -304,8 +357,8 @@
 
   <header>
     <p class="eyebrow">Text utility</p>
-    <h1>WhatsApp Number Extractor</h1>
-    <p class="sub">Paste an exported chat on the left. Every phone number it contains — sender lines, "joined the group" notices, numbers typed into messages — shows up on the right, deduplicated with how many times each one appears.</p>
+    <h1>WhatsApp Contact Extractor</h1>
+    <p class="sub">Paste an exported chat on the left. Shared contact cards become name-and-number pairs, numbers typed straight into messages get pulled out too — all deduplicated, on the right.</p>
     <p class="privacy">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
       Runs entirely in your browser. Nothing you paste is sent anywhere.
@@ -325,12 +378,12 @@
 
       <div class="pane pane--results">
         <div class="pane-head">
-          <span class="pane-title">Numbers found</span>
+          <span class="pane-title">Extracted</span>
           <button type="button" class="btn btn--primary" id="copy-all-btn">Copy all</button>
         </div>
         <div class="stats">
-          <div class="stat"><span class="stat-num" id="stat-unique">0</span><span class="stat-label">Unique</span></div>
-          <div class="stat"><span class="stat-num" id="stat-mentions">0</span><span class="stat-label">Mentions</span></div>
+          <div class="stat"><span class="stat-num" id="stat-contacts">0</span><span class="stat-label">Contacts</span></div>
+          <div class="stat"><span class="stat-num" id="stat-numbers">0</span><span class="stat-label">Numbers</span></div>
         </div>
         <div id="example-flag" class="example-flag" hidden>Example chat, shown so you can see how this works — paste your own to replace it.</div>
         <div class="results" id="results"></div>
@@ -339,7 +392,7 @@
     </div>
   </div>
 
-  <footer>Detects international (+…) and common local formats. Always sanity-check anything you plan to act on.</footer>
+  <footer>Full vCard blocks (<code>BEGIN:VCARD…END:VCARD</code>) give a real name and number. A plain chat export usually only references a shared card by filename — the number isn't in that file at all, so those show as name-only. Export "with media" (or open the .vcf directly) and paste its contents for the full data.</footer>
 
 </div>
 
@@ -347,19 +400,33 @@
 (function () {
   var input = document.getElementById('chat-input');
   var results = document.getElementById('results');
-  var statUnique = document.getElementById('stat-unique');
-  var statMentions = document.getElementById('stat-mentions');
+  var statContacts = document.getElementById('stat-contacts');
+  var statNumbers = document.getElementById('stat-numbers');
   var exampleFlag = document.getElementById('example-flag');
   var clearBtn = document.getElementById('clear-btn');
   var copyAllBtn = document.getElementById('copy-all-btn');
 
   var EXAMPLE = [
-    '[14/02/24, 6:03:12 PM] Priya Sharma: Hey! WhatsApp me on +91 98765 43210 once you land',
-    '[14/02/24, 6:05:44 PM] +1 (415) 555-0192: This is Alex from the vendor, added by Priya',
-    '[14/02/24, 6:06:01 PM] Priya Sharma: Perfect, saving that number now',
+    '[14/02/24, 6:03:12 PM] Priya Sharma: Hey! Sharing Alex\'s card below',
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    'N:;Alex Fernandes;;;',
+    'FN:Alex Fernandes',
+    'item1.TEL;waid=14155550192:+1 (415) 555-0192',
+    'item1.X-ABLabel:Mobile',
+    'END:VCARD',
     '[14/02/24, 6:10:37 PM] Rahul: My other number is 987-654-3210 in case this one doesn\'t work',
-    '‎+91 98765 43210‎ joined using this group\'s invite link',
-    '[14/02/24, 6:22:09 PM] Priya Sharma: Ok noted +91 98765 43210, twice now 😅'
+    '[14/02/24, 6:12:00 PM] Priya Sharma: ‎<attached: 00000031-Dana Cole.vcf>',
+    '[14/02/24, 6:13:00 PM] Priya Sharma: ‎Contact card omitted',
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    'N:;Priya Sharma;;;',
+    'FN:Priya Sharma',
+    'item1.TEL;waid=919876543210:+91 98765 43210',
+    'item1.X-ABLabel:Mobile',
+    'item2.TEL;waid=919876500000:+91 98765 00000',
+    'item2.X-ABLabel:Work',
+    'END:VCARD'
   ].join('\n');
 
   var COUNTRY_CODES = {
@@ -392,9 +459,87 @@
     });
   }
 
-  // WhatsApp exports wrap numbers in bidi control marks — strip those first.
+  var BIDI_RE = /[‎‏‪-‮]/g;
+  function cleanText(s) { return s.replace(BIDI_RE, ''); }
+
+  // ── vCard blocks: full name + number(s), with WhatsApp's own `waid` param preferred ──
+  function extractVCardContacts(text) {
+    var unfolded = text.replace(/\r\n/g, '\n').replace(/\n[ \t]/g, '');
+    var blocks = unfolded.match(/BEGIN:VCARD[\s\S]*?END:VCARD/gi) || [];
+    var contacts = [];
+    var seen = {};
+
+    blocks.forEach(function (block) {
+      var lines = cleanText(block).split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+      var fn = null, nParts = null, phones = [], labels = {};
+
+      // Apple/WhatsApp style: itemN.X-ABLabel:Mobile ties a type to itemN.TEL
+      lines.forEach(function (line) {
+        var lm = line.match(/^item(\d+)\.X-AB(?:Label|adr):(.+)$/i);
+        if (lm) labels[lm[1]] = lm[2].trim();
+      });
+
+      lines.forEach(function (line) {
+        if (/^FN(;[^:]*)?:/i.test(line)) {
+          fn = line.replace(/^FN(;[^:]*)?:/i, '').trim();
+        } else if (/^N(;[^:]*)?:/i.test(line) && !nParts) {
+          nParts = line.replace(/^N(;[^:]*)?:/i, '').split(';');
+        } else if (/^(item(\d+)\.)?TEL/i.test(line)) {
+          var itemMatch = line.match(/^item(\d+)\./i);
+          var colonIdx = line.indexOf(':');
+          if (colonIdx === -1) return;
+          var paramsPart = line.slice(0, colonIdx);
+          var valuePart = line.slice(colonIdx + 1).trim();
+          var waidMatch = paramsPart.match(/waid=(\d+)/i);
+          var typeMatch = paramsPart.match(/TYPE=([A-Za-z,]+)/i);
+          var display = waidMatch ? '+' + waidMatch[1] : valuePart;
+          var digits = display.replace(/\D/g, '');
+          if (digits.length < 5) return;
+          var type = typeMatch ? typeMatch[1].split(',')[0] : ((itemMatch && labels[itemMatch[1]]) || null);
+          phones.push({ display: display, digits: digits, type: type });
+        }
+      });
+
+      var name = fn || (nParts ? [nParts[1], nParts[0]].filter(Boolean).join(' ').trim() : '') || 'Unnamed contact';
+
+      phones.forEach(function (p) {
+        var key = name.toLowerCase() + '|' + p.digits;
+        if (seen[key]) return;
+        seen[key] = true;
+        contacts.push({ name: name, phone: p.display, digits: p.digits, type: p.type });
+      });
+    });
+
+    return { contacts: contacts, strippedText: unfolded.replace(/BEGIN:VCARD[\s\S]*?END:VCARD/gi, ' ') };
+  }
+
+  // ── Plain-text card references: WhatsApp only stored a filename, no number ──
+  function extractCardRefs(text, knownNames) {
+    var refs = [];
+    var seenNames = {};
+    var androidRe = /<attached:\s*([^<>:]+?)\.vcf>/gi;
+    var iosRe = /([^\n<>:]{1,80}?)\.vcf\s*\(file attached\)/gi;
+    var m;
+
+    function add(raw) {
+      var name = cleanText(raw).replace(/^\d+[-_]/, '').replace(/\s+/g, ' ').trim();
+      if (!name) return;
+      var key = name.toLowerCase();
+      if (knownNames[key] || seenNames[key]) return;
+      seenNames[key] = true;
+      refs.push(name);
+    }
+
+    while ((m = androidRe.exec(text))) add(m[1]);
+    while ((m = iosRe.exec(text))) add(m[1]);
+
+    var omitted = text.match(/contact card omitted/gi);
+    return { refs: refs, omittedCount: omitted ? omitted.length : 0 };
+  }
+
+  // ── Bare numbers typed directly into messages (not part of a vCard) ──
   function extractNumbers(text) {
-    var clean = text.replace(/[‎‏‪-‮]/g, '');
+    var clean = cleanText(text);
     var candidates = clean.match(/(\+?\d[\d\s\-.()]{6,}\d)/g) || [];
 
     var seen = {};
@@ -416,41 +561,105 @@
       .sort(function (a, b) { return b.count - a.count; });
   }
 
-  function render(numbers, isExample) {
+  function sectionHeadHTML(label, count) {
+    return '<div class="section-head">' + escapeHtml(label) + ' <span class="section-count">' + count + '</span></div>';
+  }
+
+  function contactRowHTML(c) {
+    var country = c.phone.charAt(0) === '+' ? lookupCountry(c.digits) : null;
+    return (
+      '<div class="row">' +
+        '<div class="row-main">' +
+          '<div class="row-name">' + escapeHtml(c.name) + '</div>' +
+          '<div class="row-number">' + escapeHtml(c.phone) +
+            (c.type ? '<span class="row-type">' + escapeHtml(c.type) + '</span>' : '') +
+          '</div>' +
+          (country ? '<div class="row-country">' + escapeHtml(country) + '</div>' : '') +
+        '</div>' +
+        '<button type="button" class="btn btn--ghost row-copy" data-value="' + escapeHtml(c.name + '\t' + c.phone) + '" aria-label="Copy name and number">Copy</button>' +
+      '</div>'
+    );
+  }
+
+  function nameOnlyRowHTML(name) {
+    return (
+      '<div class="row">' +
+        '<div class="row-main">' +
+          '<div class="row-name">' + escapeHtml(name) + '</div>' +
+          '<div class="row-number row-number--muted">No number in this export</div>' +
+        '</div>' +
+        '<button type="button" class="btn btn--ghost row-copy" data-value="' + escapeHtml(name) + '" aria-label="Copy name">Copy</button>' +
+      '</div>'
+    );
+  }
+
+  function numberRowHTML(n) {
+    var country = n.hasPlus ? lookupCountry(n.digits) : null;
+    return (
+      '<div class="row">' +
+        '<div class="row-main">' +
+          '<div class="row-number">' + escapeHtml(n.display) + '</div>' +
+          (country ? '<div class="row-country">' + escapeHtml(country) + '</div>' : '') +
+        '</div>' +
+        '<span class="row-count">' + n.count + (n.count === 1 ? ' time' : ' times') + '</span>' +
+        '<button type="button" class="btn btn--ghost row-copy" data-value="' + escapeHtml(n.display) + '" aria-label="Copy this number">Copy</button>' +
+      '</div>'
+    );
+  }
+
+  var currentContacts = [];
+  var currentRefs = [];
+  var currentNumbers = [];
+
+  function render(contacts, cardRefs, numbers, isExample) {
     exampleFlag.hidden = !isExample;
 
-    var totalMentions = numbers.reduce(function (sum, n) { return sum + n.count; }, 0);
-    statUnique.textContent = numbers.length;
-    statMentions.textContent = totalMentions;
-    copyAllBtn.disabled = numbers.length === 0;
+    statContacts.textContent = contacts.length;
+    statNumbers.textContent = contacts.length + numbers.length;
 
-    if (!numbers.length) {
-      results.innerHTML = '<p class="empty">No phone numbers found yet. Paste a chat on the left.</p>';
+    var hasAnything = contacts.length || cardRefs.refs.length || numbers.length || cardRefs.omittedCount;
+    copyAllBtn.disabled = !hasAnything;
+
+    if (!hasAnything) {
+      results.innerHTML = '<p class="empty">Nothing found yet. Paste a chat on the left.</p>';
       return;
     }
 
-    results.innerHTML = numbers.map(function (n) {
-      var country = n.hasPlus ? lookupCountry(n.digits) : null;
-      return (
-        '<div class="row">' +
-          '<div class="row-main">' +
-            '<div class="row-number">' + escapeHtml(n.display) + '</div>' +
-            (country ? '<div class="row-country">' + escapeHtml(country) + '</div>' : '') +
-          '</div>' +
-          '<span class="row-count">' + n.count + (n.count === 1 ? ' time' : ' times') + '</span>' +
-          '<button type="button" class="btn btn--ghost row-copy" data-value="' + escapeHtml(n.display) + '" aria-label="Copy this number">Copy</button>' +
-        '</div>'
-      );
-    }).join('');
-  }
+    var html = '';
+    if (contacts.length) {
+      html += sectionHeadHTML('Contacts', contacts.length) + contacts.map(contactRowHTML).join('');
+    }
+    if (cardRefs.refs.length) {
+      html += sectionHeadHTML('Cards shared, no number available', cardRefs.refs.length) +
+        cardRefs.refs.map(nameOnlyRowHTML).join('');
+    }
+    if (numbers.length) {
+      html += sectionHeadHTML('Other numbers mentioned', numbers.length) + numbers.map(numberRowHTML).join('');
+    }
+    if (cardRefs.omittedCount) {
+      html += '<p class="omitted-note">Plus ' + cardRefs.omittedCount + ' contact card' +
+        (cardRefs.omittedCount === 1 ? '' : 's') + ' shared with no name or number recorded in this export.</p>';
+    }
 
-  var current = [];
+    results.innerHTML = html;
+  }
 
   function run() {
     var text = input.value;
     var isExample = text === EXAMPLE;
-    current = extractNumbers(text);
-    render(current, isExample);
+
+    var vcard = extractVCardContacts(text);
+    var knownNames = {};
+    vcard.contacts.forEach(function (c) { knownNames[c.name.toLowerCase()] = true; });
+
+    var cardRefs = extractCardRefs(vcard.strippedText, knownNames);
+    var numbers = extractNumbers(vcard.strippedText);
+
+    currentContacts = vcard.contacts;
+    currentRefs = cardRefs.refs;
+    currentNumbers = numbers;
+
+    render(vcard.contacts, cardRefs, numbers, isExample);
   }
 
   input.addEventListener('input', run);
@@ -470,19 +679,23 @@
       btn.textContent = 'Copied';
       setTimeout(function () { btn.textContent = original; }, 1300);
     } catch (err) {
-      window.prompt('Copy this number:', btn.dataset.value);
+      window.prompt('Copy this:', btn.dataset.value);
     }
   });
 
   copyAllBtn.addEventListener('click', async function () {
-    var text = current.map(function (n) { return n.display; }).join('\n');
+    var lines = [];
+    currentContacts.forEach(function (c) { lines.push(c.name + '\t' + c.phone); });
+    currentRefs.forEach(function (n) { lines.push(n + '\t'); });
+    currentNumbers.forEach(function (n) { lines.push('\t' + n.display); });
+    var text = lines.join('\n');
     try {
       await navigator.clipboard.writeText(text);
       var original = copyAllBtn.textContent;
       copyAllBtn.textContent = 'Copied ✓';
       setTimeout(function () { copyAllBtn.textContent = original; }, 1500);
     } catch (err) {
-      window.prompt('Copy all numbers:', text);
+      window.prompt('Copy everything:', text);
     }
   });
 
